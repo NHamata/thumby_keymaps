@@ -1,70 +1,236 @@
-/*
-Copyright 2019 @foostan
-Copyright 2020 Drashna Jaelre <@drashna>
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 
+//TO DO
+// ()  combo L-IM R-IM
+// {}  combo L-MR R-MR
+// []  combo L-RP R-RP
+// <>  combo L-I(down)R  R-I(down)R
+// ; combo  R-IR
+// : combo  L-IR
+// = combo L-IP 
+// / R-IP
+// - combo R-I(down)M
+// _ combo L-I(down)M 
+// ' triple tap J
+// " triple tap U 
+// ` triple tap Y 
+
+
+
+
+// NAV layer
+// ~ layer
+void triple_tap_symbol(qk_tap_dance_state_t *state, void *user_data) {
+    qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
+
+    if (state->count == 3) {
+        // immediately finish on third press
+        tap_code16(pair->kc2);
+        register_code16(pair->kc2);
+        state->finished = true;
+    }
+}
+
+void triple_tap_symbol_finished(qk_tap_dance_state_t *state, void *user_data) {
+    qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
+
+    if (state->count == 1) {
+        register_code16(pair->kc1);
+    } else if (state->count == 2) {
+        // tap plus hold
+        register_code16(pair->kc2);
+    } else if (state->count == 3) {
+        tap_code16(pair->kc2);
+        register_code16(pair->kc2);
+    }
+}
+
+void triple_tap_symbol_reset(qk_tap_dance_state_t *state, void *user_data) {
+    qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
+    if (state->count == 1) {
+        // 1-tap and 2-tap both result in `kc1` pressed so release it
+        unregister_code16(pair->kc1);
+    } else if( state->count == 2 || state->count == 3 ) {
+        // 1-tap and 2-tap both result in `kc1` pressed so release it
+        unregister_code16(pair->kc2);
+    }
+}
+
+#define TRIPLE_TAP_SYMBOL(kc1, kc2) \
+        { .fn = {triple_tap_symbol, triple_tap_symbol_finished, triple_tap_symbol_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
+
+///EDIT TAP
+void triple_tap_edit(qk_tap_dance_state_t *state, void *user_data) {
+    qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
+
+    if (state->count == 3) {
+        // immediately finish on third press
+        register_code16(pair->kc2);
+        state->finished = true;
+    }
+}
+
+void triple_tap_edit_finished(qk_tap_dance_state_t *state, void *user_data) {
+    qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
+
+    if (state->count == 1) {
+        register_code16(pair->kc1);
+    } else if (state->count == 2) {
+        // tap plus hold
+        tap_code16(pair->kc1);
+        register_code16(pair->kc1);
+    } else if (state->count == 3) {
+        register_code16(pair->kc2);
+    }
+}
+
+void triple_tap_edit_reset(qk_tap_dance_state_t *state, void *user_data) {
+    qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
+
+    if (state->count == 1 || state->count == 2) {
+        // 1-tap and 2-tap both result in `kc1` pressed so release it
+        unregister_code16(pair->kc1);
+    } else if (state->count == 3) {
+        unregister_code16(pair->kc2);
+    }
+}
+
+#define TRIPLE_TAP_EDIT(kc1, kc2) \
+        { .fn = {triple_tap_edit, triple_tap_edit_finished, triple_tap_edit_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
+
+// Tap Dance declarations
+enum {
+    ESC_CAPS,
+    SPC_TABS,
+    J_DOUBLE_QUOTE,
+    U_SINGLE_QUOTE,
+    Y_BACK_TICK,
+    C_CC_COPY,
+    V_VV_PASTE,
+    X_XX_CUT,
+    WBCK_WFWD
+};
+
+// Tap Dance definitions
+qk_tap_dance_action_t tap_dance_actions[] = {
+    // Tap once for Escape, twice for Caps Lock
+    [ESC_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_ESC, KC_CAPS),
+    [SPC_TABS] = ACTION_TAP_DANCE_DOUBLE(KC_SPC, KC_TAB),
+    [WBCK_WFWD] = ACTION_TAP_DANCE_DOUBLE(KC_WBAK, KC_WFWD),
+    [J_DOUBLE_QUOTE] = TRIPLE_TAP_SYMBOL (KC_J,KC_DOUBLE_QUOTE),
+    [U_SINGLE_QUOTE] = TRIPLE_TAP_SYMBOL (KC_U,KC_QUOTE),
+    [Y_BACK_TICK] = TRIPLE_TAP_SYMBOL (KC_Y,KC_GRAVE),
+    [C_CC_COPY] = TRIPLE_TAP_EDIT(KC_C, LCTL(KC_C)),
+    [V_VV_PASTE] = TRIPLE_TAP_EDIT(KC_V, LCTL(KC_V)),
+    [X_XX_CUT] = TRIPLE_TAP_EDIT(KC_X, LCTL(KC_X))
+};
+
+
+//combos
+// L/R-XXX: Left Right
+// I: Index finger
+// M: middle finger
+// R: ring finger
+// P: pinky finger
+// () combo L-IM R-IM
+// {} combo L-MR R-MR
+// [] combo L-RP R-RP
+// <> combo L-I(down)R  R-I(down)R
+// ; combo R-IR
+// : combo L-IR
+// = combo L-IP 
+// / combo R-IP
+// - combo R-I(down)M
+// _ combo L-I(down)M 
+// + combo R-P(down)R
+// ? combo R-P(down)M
+// | combo L-P(down)R
+// \ combo L-P(down)M
+
+const uint16_t PROGMEM lprn_combo[] = {KC_S, KC_T, COMBO_END};
+const uint16_t PROGMEM rprn_combo[] = {KC_N, KC_L, COMBO_END};
+const uint16_t PROGMEM lcbr_combo[] = {KC_R, KC_S, COMBO_END};
+const uint16_t PROGMEM rcbr_combo[] = {KC_L, KC_I, COMBO_END};
+const uint16_t PROGMEM lbrc_combo[] = {KC_A, KC_R, COMBO_END};
+const uint16_t PROGMEM rbrc_combo[] = {KC_I, KC_O, COMBO_END};
+const uint16_t PROGMEM labk_combo[] = {KC_D, KC_R, COMBO_END};
+const uint16_t PROGMEM rabk_combo[] = {KC_H, KC_I, COMBO_END};
+const uint16_t PROGMEM coln_combo[] = {KC_T, KC_R, COMBO_END};
+const uint16_t PROGMEM scln_combo[] = {KC_N, KC_I, COMBO_END};
+const uint16_t PROGMEM pmns_combo[] = {KC_H, KC_L, COMBO_END};
+const uint16_t PROGMEM unds_combo[] = {KC_D, KC_S, COMBO_END};
+const uint16_t PROGMEM eql_combo[] = {KC_A, KC_T, COMBO_END};
+const uint16_t PROGMEM slsh_combo[] = {KC_N, KC_O, COMBO_END};
+const uint16_t PROGMEM pgup_combo[] = {KC_LEFT, KC_DOWN, COMBO_END};
+const uint16_t PROGMEM pgdn_combo[] = {KC_UP, KC_RIGHT, COMBO_END};
+const uint16_t PROGMEM pscr_combo[] = {KC_4, KC_INSERT, COMBO_END};
+const uint16_t PROGMEM ppls_combo[] = {KC_Z, KC_R, COMBO_END};
+const uint16_t PROGMEM ques_combo[] = {KC_Z, KC_S, COMBO_END};
+const uint16_t PROGMEM pipe_combo[] = {KC_I, KC_ENT, COMBO_END};
+const uint16_t PROGMEM bsls_combo[] = {KC_L, KC_ENT, COMBO_END};
+
+combo_t key_combos[COMBO_COUNT] = {
+    COMBO(lprn_combo, KC_LPRN),
+    COMBO(rprn_combo, KC_RPRN),
+    COMBO(lcbr_combo, KC_LCBR),
+    COMBO(rcbr_combo, KC_RCBR),
+    COMBO(lbrc_combo, KC_LBRC),
+    COMBO(rbrc_combo, KC_RBRC),
+    COMBO(labk_combo, KC_LABK),
+    COMBO(rabk_combo, KC_RABK),
+    COMBO(coln_combo, KC_COLN),
+    COMBO(scln_combo, KC_SCLN),
+    COMBO(pmns_combo, KC_PMNS),
+    COMBO(unds_combo, KC_UNDS),
+    COMBO(eql_combo, KC_EQL),
+    COMBO(slsh_combo, KC_SLSH),
+    COMBO(pgup_combo, KC_PGUP),
+    COMBO(pgdn_combo, KC_PGDN),
+    COMBO(pscr_combo, KC_PSCR),
+    COMBO(ppls_combo, KC_PPLS),
+    COMBO(ques_combo, KC_QUES),
+    COMBO(pipe_combo, KC_PIPE),
+    COMBO(bsls_combo ,KC_BSLS)  
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_TAB,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                         KC_Y,    KC_U,    KC_I,    KC_O,   KC_P,  KC_BSPC,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LCTL,    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_QUOT,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH,  KC_ESC,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI,   MO(1),  KC_SPC,     KC_ENT,   MO(2), KC_RALT
-                                      //`--------------------------'  `--------------------------'
+  //,-----------------------------------------------------------------------------------------------------.      ,----------------------------------------------------------------------------------------------------.
+       TD(ESC_CAPS),       KC_Q,           KC_W,           KC_F,               KC_P,           KC_B,                 KC_BSPC,   TD(J_DOUBLE_QUOTE), TD(U_SINGLE_QUOTE), TD(Y_BACK_TICK),   KC_TAB,     OSM(MOD_HYPR),
+  //|----------------+----------------+----------------+----------------+----------------+----------------|      |----------------+----------------+----------------+----------------+----------------+----------------|
+       OSM(MOD_LSFT),       KC_A,           KC_R,           KC_S,               KC_T,           KC_G,                   KC_M,            KC_N,            KC_L,            KC_I,           KC_O,    OSM(MOD_LSFT|MOD_LCTL),
+  //|----------------+----------------+----------------+----------------+----------------+----------------|      |----------------+----------------+----------------+----------------+----------------+----------------|
+       OSM(MOD_LGUI),       KC_Z,       TD(X_XX_CUT),    TD(C_CC_COPY),         KC_D,      TD(V_VV_PASTE),              KC_K,            KC_H,          KC_COMM,          KC_DOT,         KC_ENT,   OSM(MOD_LSFT|MOD_LALT),
+  //|----------------+----------------+----------------+----------------+----------------+----------------+-|  |-+----------------+----------------+----------------+----------------+----------------+----------------|
+                                                             TT(1),       OSM(MOD_LCTL),        KC_SPC,                 KC_E,         OSM(MOD_LALT),      TT(2)
+                                                      //`---------------------------------------------------'  `----------------------------------------------------'
 
   ),
-
+  
   [1] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_TAB,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                         KC_6,    KC_7,    KC_8,    KC_9,    KC_0, KC_BSPC,
+      KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,                        KC_F7,   KC_F8,   KC_F9,  KC_F10,   KC_F11, KC_F12,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LCTL, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_LEFT, KC_DOWN,   KC_UP,KC_RIGHT, XXXXXXX, XXXXXXX,
+    OSM(MOD_LSFT), KC_1, KC_2,    KC_3,    KC_4,  KC_INSERT,                    KC_HOME,   KC_6,    KC_7,    KC_8,    KC_9, TD(WBCK_WFWD),
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LSFT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+     KC_LEFT, KC_DOWN,  KC_UP,  KC_RIGHT,  KC_5,   KC_DEL,                       KC_END,   KC_0,   KC_H,    KC_J,    KC_K,   KC_L,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI, _______,  KC_SPC,     KC_ENT,   MO(3), KC_RALT
+                                          TO(0), OSM(MOD_RCTL),OSM(MOD_RALT), OSM(MOD_RGUI),OSM(MOD_RSFT), TT(2)
                                       //`--------------------------'  `--------------------------'
   ),
 
   [2] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_TAB, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                      KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSPC,
+       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LCTL, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_MINS,  KC_EQL, KC_LBRC, KC_RBRC, KC_BSLS,  KC_GRV,
+      XXXXXXX, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, XXXXXXX,                      XXXXXXX,   KC_H,    KC_J,    KC_K,   KC_L,  XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LSFT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_UNDS, KC_PLUS, KC_LCBR, KC_RCBR, KC_PIPE, KC_TILD,
+      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_PGUP, XXXXXXX,                      XXXXXXX, KC_PGDN, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI,   MO(3),  KC_SPC,     KC_ENT, _______, KC_RALT
+                                          TT(1),   MO(3),  KC_SPC,     KC_ENT, _______, TO(0)
                                       //`--------------------------'  `--------------------------'
   ),
-
-  [3] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-        RESET, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      RGB_MOD, RGB_HUD, RGB_SAD, RGB_VAD, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI, _______,  KC_SPC,     KC_ENT, _______, KC_RALT
-                                      //`--------------------------'  `--------------------------'
-  )
 };
 
 #ifdef OLED_ENABLE
