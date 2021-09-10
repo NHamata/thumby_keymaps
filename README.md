@@ -3,7 +3,7 @@
 ### Philosophy
 Named the thumby (since it sounds like thumb-e). There are a few core design philosphies for thumby keymaps:
 - Utilize the thumbs on most commonly used keys, to achieve this...
-  - 'e' is assigned to a thumb key
+  - 'e' is assigned to a thumb key (on ergo split boards only, since they utilize a alternative layout)
   - 'space' is assigned to a thumb key
   - 'commonly used modifiers are assigned to thumb keys'
 - minimize layer changes by...
