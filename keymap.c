@@ -1,26 +1,13 @@
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 
-//TO DO
-// ()  combo L-IM R-IM
-// {}  combo L-MR R-MR
-// []  combo L-RP R-RP
-// <>  combo L-I(down)R  R-I(down)R
-// ; combo  R-IR
-// : combo  L-IR
-// = combo L-IP 
-// / R-IP
-// - combo R-I(down)M
-// _ combo L-I(down)M 
-// ' triple tap J
-// " triple tap U 
-// ` triple tap Y 
 
-
-
-
-// NAV layer
-// ~ layer
+/* TAP DANCE CUSTOM FUNCTION: symbol tap
+* on single tap register kc1, on double register one instances of kc2. 
+* On triple tap register two instances of kc2.
+* IMPORTANT: you probably do not want to use this on keys/letters that have 
+* common double consecutive usages like the letter 'm'
+ */
 void triple_tap_symbol(qk_tap_dance_state_t *state, void *user_data) {
     qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
 
@@ -60,7 +47,11 @@ void triple_tap_symbol_reset(qk_tap_dance_state_t *state, void *user_data) {
 #define TRIPLE_TAP_SYMBOL(kc1, kc2) \
         { .fn = {triple_tap_symbol, triple_tap_symbol_finished, triple_tap_symbol_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
 
-///EDIT TAP
+/* TAP DANCE CUSTOM FUNCTION: Edit tap
+* on single tap register kc1, on double register two instances of kc2. 
+* This is useful in cases where two consecutive letters are required for some edit function such as ctrl+c
+* On triple tap register two instances of kc2.
+ */
 void triple_tap_edit(qk_tap_dance_state_t *state, void *user_data) {
     qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
 
@@ -99,7 +90,7 @@ void triple_tap_edit_reset(qk_tap_dance_state_t *state, void *user_data) {
 #define TRIPLE_TAP_EDIT(kc1, kc2) \
         { .fn = {triple_tap_edit, triple_tap_edit_finished, triple_tap_edit_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
 
-// Tap Dance declarations
+/* Tap Dance declarations */
 enum {
     ESC_CAPS,
     SPC_TABS,
@@ -112,7 +103,7 @@ enum {
     WBCK_WFWD
 };
 
-// Tap Dance definitions
+/* Tap Dance definitions */
 qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for Escape, twice for Caps Lock
     [ESC_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_ESC, KC_CAPS),
@@ -127,26 +118,33 @@ qk_tap_dance_action_t tap_dance_actions[] = {
 };
 
 
-//combos
-// L/R-XXX: Left Right
-// I: Index finger
-// M: middle finger
-// R: ring finger
-// P: pinky finger
-// () combo L-IM R-IM
-// {} combo L-MR R-MR
-// [] combo L-RP R-RP
-// <> combo L-I(down)R  R-I(down)R
-// ; combo R-IR
-// : combo L-IR
-// = combo L-IP 
-// / combo R-IP
-// - combo R-I(down)M
-// _ combo L-I(down)M 
-// + combo R-P(down)R
-// ? combo R-P(down)M
-// | combo L-P(down)R
-// \ combo L-P(down)M
+/* COMBOS
+* most symbols are accessed with combos.
+* LEGEND:
+*  L/R-XXX: Left Right
+*  I: Index finger
+*  M: middle finger
+*  R: ring finger
+*  P: pinky finger
+*  
+* ASSIGNMENTS
+*  () combo L-IM R-IM
+*  {} combo L-MR R-MR
+*  [] combo L-RP R-RP
+*  <> combo L-I(down)R  R-I(down)R
+*  ; combo R-IR
+*  : combo L-IR
+*  = combo L-IP 
+*  / combo R-IP
+*  - combo R-I(down)M
+*  _ combo L-I(down)M 
+*  + combo R-P(down)R
+*  ? combo R-P(down)M
+*  | combo L-P(down)R
+*  \ combo L-P(down)M
+*  ~ combo L-I(up)M(up)
+*/
+
 
 const uint16_t PROGMEM lprn_combo[] = {KC_S, KC_T, COMBO_END};
 const uint16_t PROGMEM rprn_combo[] = {KC_N, KC_L, COMBO_END};
@@ -169,6 +167,7 @@ const uint16_t PROGMEM ppls_combo[] = {KC_Z, KC_R, COMBO_END};
 const uint16_t PROGMEM ques_combo[] = {KC_Z, KC_S, COMBO_END};
 const uint16_t PROGMEM pipe_combo[] = {KC_I, KC_ENT, COMBO_END};
 const uint16_t PROGMEM bsls_combo[] = {KC_L, KC_ENT, COMBO_END};
+const uint16_t PROGMEM tild_combo[] = {KC_F, KC_P, COMBO_END};
 
 combo_t key_combos[COMBO_COUNT] = {
     COMBO(lprn_combo, KC_LPRN),
@@ -191,9 +190,12 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(ppls_combo, KC_PPLS),
     COMBO(ques_combo, KC_QUES),
     COMBO(pipe_combo, KC_PIPE),
-    COMBO(bsls_combo ,KC_BSLS)  
+    COMBO(bsls_combo ,KC_BSLS),
+    COMBO(tild_combo, KC_TILD)  
 };
 
+
+/* KEYMAPS */
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------------------------------------------------------.      ,----------------------------------------------------------------------------------------------------.
@@ -236,7 +238,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #ifdef OLED_ENABLE
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   if (!is_keyboard_master()) {
-    return OLED_ROTATION_180;  // flips the display 180 degrees if offhand
+    return OLED_ROTATION_180;  /* flips the display 180 degrees if offhand */
   }
   return rotation;
 }
@@ -286,7 +288,7 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
     name = code_to_name[keycode];
   }
 
-  // update keylog
+  /* update keylog */
   snprintf(keylog_str, sizeof(keylog_str), "%dx%d, k%2d : %c",
            record->event.key.row, record->event.key.col,
            keycode, name);
