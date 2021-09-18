@@ -1,44 +1,13 @@
-/*
-Copyright 2019 @foostan
-Copyright 2020 Drashna Jaelre <@drashna>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 
-//TO DO
-// ()  combo L-IM R-IM
-// {}  combo L-MR R-MR
-// []  combo L-RP R-RP
-// <>  combo L-I(down)R  R-I(down)R
-// ; combo  R-IR
-// : combo  L-IR
-// = combo L-IP 
-// / R-IP
-// - combo R-I(down)M
-// _ combo L-I(down)M 
-// ' triple tap J
-// " triple tap U 
-// ` triple tap Y 
 
-
-
-
-// NAV layer
-// ~ layer
+/* TAP DANCE CUSTOM FUNCTION: symbol tap
+* on single tap register kc1, on double register one instances of kc2. 
+* On triple tap register two instances of kc2.
+* IMPORTANT: you probably do not want to use this on keys/letters that have 
+* common double consecutive usages like the letter 'm'
+ */
 void triple_tap_symbol(qk_tap_dance_state_t *state, void *user_data) {
     qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
 
@@ -78,7 +47,11 @@ void triple_tap_symbol_reset(qk_tap_dance_state_t *state, void *user_data) {
 #define TRIPLE_TAP_SYMBOL(kc1, kc2) \
         { .fn = {triple_tap_symbol, triple_tap_symbol_finished, triple_tap_symbol_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
 
-///EDIT TAP
+/* TAP DANCE CUSTOM FUNCTION: Edit tap
+* on single tap register kc1, on double register two instances of kc2. 
+* This is useful in cases where two consecutive letters are required for some edit function such as ctrl+c
+* On triple tap register two instances of kc2.
+ */
 void triple_tap_edit(qk_tap_dance_state_t *state, void *user_data) {
     qk_tap_dance_pair_t *pair = (qk_tap_dance_pair_t *)user_data;
 
@@ -116,6 +89,7 @@ void triple_tap_edit_reset(qk_tap_dance_state_t *state, void *user_data) {
 
 #define TRIPLE_TAP_EDIT(kc1, kc2) \
         { .fn = {triple_tap_edit, triple_tap_edit_finished, triple_tap_edit_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
+
 
 /* Tap Dance declarations */
 enum {
@@ -222,8 +196,7 @@ combo_t key_combos[COMBO_COUNT] = {
     COMBO(tild_combo, KC_TILD)  
 };
 
-
-
+/* KEYMAPS */
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------------------------------------------------------.      ,----------------------------------------------------------------------------------------------------.
