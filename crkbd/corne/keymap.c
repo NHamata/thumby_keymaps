@@ -117,7 +117,7 @@ void triple_tap_edit_reset(qk_tap_dance_state_t *state, void *user_data) {
 #define TRIPLE_TAP_EDIT(kc1, kc2) \
         { .fn = {triple_tap_edit, triple_tap_edit_finished, triple_tap_edit_reset}, .user_data = (void *)&((qk_tap_dance_pair_t){kc1, kc2}), }
 
-// Tap Dance declarations
+/* Tap Dance declarations */
 enum {
     ESC_CAPS,
     SPC_TABS,
@@ -128,12 +128,12 @@ enum {
     V_VV_PASTE,
     X_XX_CUT,
     WBCK_WFWD,
-    S_SS_SAVE
+    Z_ZZ_SAVE
 };
 
-// Tap Dance definitions
+
+/* Tap Dance definitions */
 qk_tap_dance_action_t tap_dance_actions[] = {
-    // Tap once for Escape, twice for Caps Lock
     [ESC_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_ESC, KC_CAPS),
     [SPC_TABS] = ACTION_TAP_DANCE_DOUBLE(KC_SPC, KC_TAB),
     [WBCK_WFWD] = ACTION_TAP_DANCE_DOUBLE(KC_WBAK, KC_WFWD),
@@ -143,7 +143,7 @@ qk_tap_dance_action_t tap_dance_actions[] = {
     [C_CC_COPY] = TRIPLE_TAP_EDIT(KC_C, LCTL(KC_C)),
     [V_VV_PASTE] = TRIPLE_TAP_EDIT(KC_V, LCTL(KC_V)),
     [X_XX_CUT] = TRIPLE_TAP_EDIT(KC_X, LCTL(KC_X)),
-    [S_SS_SAVE]= TRIPLE_TAP_EDIT(KC_S, LCTL(KC_S))
+    [Z_ZZ_SAVE]= TRIPLE_TAP_EDIT(KC_Z, LCTL(KC_S))
 };
 
 /* COMBOS
@@ -166,10 +166,10 @@ qk_tap_dance_action_t tap_dance_actions[] = {
 *  _ combo R-IP 
 *  = combo R-I(down)M
 *  / combo L-I(down)M 
-*  + combo R-P(down)R
-*  ? combo R-P(down)M
-*  | combo L-P(down)R
-*  \ combo L-P(down)M
+*  + combo R-I(left)R
+*  ? combo R-I(left)M
+*  | combo L-I(right)R
+*  \ combo L-I(right)M
 *  ~ combo L-I(up)M(up)
 */
 
@@ -191,10 +191,10 @@ const uint16_t PROGMEM slsh_combo[] = {KC_D, KC_S, COMBO_END};
 const uint16_t PROGMEM pgup_combo[] = {KC_LEFT, KC_DOWN, COMBO_END};
 const uint16_t PROGMEM pgdn_combo[] = {KC_UP, KC_RIGHT, COMBO_END};
 const uint16_t PROGMEM pscr_combo[] = {KC_4, KC_INSERT, COMBO_END};
-const uint16_t PROGMEM ppls_combo[] = {KC_Z, KC_R, COMBO_END};
-const uint16_t PROGMEM ques_combo[] = {KC_Z, KC_S, COMBO_END};
-const uint16_t PROGMEM pipe_combo[] = {KC_I, KC_ENT, COMBO_END};
-const uint16_t PROGMEM bsls_combo[] = {KC_L, KC_ENT, COMBO_END};
+const uint16_t PROGMEM ppls_combo[] = {KC_G, KC_R, COMBO_END};
+const uint16_t PROGMEM ques_combo[] = {KC_G, KC_S, COMBO_END};
+const uint16_t PROGMEM pipe_combo[] = {KC_I, KC_M, COMBO_END};
+const uint16_t PROGMEM bsls_combo[] = {KC_L, KC_M, COMBO_END};
 const uint16_t PROGMEM tild_combo[] = {KC_F, KC_P, COMBO_END};
 
 combo_t key_combos[COMBO_COUNT] = {
@@ -223,18 +223,18 @@ combo_t key_combos[COMBO_COUNT] = {
 };
 
 
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------------------------------------------------------.      ,----------------------------------------------------------------------------------------------------.
-       TD(ESC_CAPS),       KC_Q,           KC_W,           KC_F,               KC_P,           KC_B,                 KC_BSPC,   TD(J_DOUBLE_QUOTE), TD(U_SINGLE_QUOTE), TD(Y_BACK_TICK),OSM(MOD_LSFT|MOD_LGUI), OSM(MOD_LSFT|MOD_LALT),
+       TD(ESC_CAPS),       KC_Q,           KC_W,           KC_F,               KC_P,           KC_B,                 KC_BSPC,   TD(J_DOUBLE_QUOTE), TD(U_SINGLE_QUOTE), TD(Y_BACK_TICK),OSM(MOD_RSFT|MOD_RCTL), OSM(MOD_RSFT|MOD_RALT),
   //|----------------+----------------+----------------+----------------+----------------+----------------|      |----------------+----------------+----------------+----------------+----------------+----------------|
-       OSM(MOD_LSFT),       KC_A,           KC_R,        TD(S_SS_SAVE),       KC_T,           KC_G,                   KC_M,            KC_N,            KC_L,            KC_I,             KC_O,          KC_ENT ,
+       OSM(MOD_LSFT),       KC_A,           KC_R,              KC_S,           KC_T,           KC_G,                   KC_M,            KC_N,            KC_L,            KC_I,             KC_O,          KC_ENT ,
   //|----------------+----------------+----------------+----------------+----------------+----------------|      |----------------+----------------+----------------+----------------+----------------+----------------|
-           KC_TAB,       KC_Z,       TD(X_XX_CUT),    TD(C_CC_COPY),         KC_D,      TD(V_VV_PASTE),              KC_K,            KC_H,          KC_COMM,          KC_DOT,     OSM(MOD_LGUI),  OSM(MOD_LSFT|MOD_LCTL) ,
+           KC_TAB,     TD(Z_ZZ_SAVE),    TD(X_XX_CUT),   TD(C_CC_COPY),        KC_D,       TD(V_VV_PASTE),              KC_K,            KC_H,          KC_COMM,          KC_DOT,      OSM(MOD_LGUI), OSM(MOD_LSFT|MOD_LGUI),
   //|----------------+----------------+----------------+----------------+----------------+----------------+-|  |-+----------------+----------------+----------------+----------------+----------------+----------------|
                                                              TT(1),       OSM(MOD_LCTL),        KC_SPC,                 KC_E,         OSM(MOD_LALT),      TT(2)
                                                       //`---------------------------------------------------'  `----------------------------------------------------'
-
   ),
   
   [1] = LAYOUT_split_3x6_3(
